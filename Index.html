@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Kelmu Creatives Art</title>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind Play CDN (for quick demo). For production: build with Tailwind CLI for best performance -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- GSAP for smooth animations -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js" defer></script>
+
+  <!-- Optional: Use a subtle CSS reset + base styles -->
+  <style>
+    :root{
+      --accent:#1f2937;
+      --tone:#0f172a;
+      --muted:#6b7280;
+      --glass: rgba(255,255,255,0.06);
+    }
+    [data-theme="dark"]{
+      --bg: #05060a;
+      --card: rgba(255,255,255,0.03);
+      --text: #e6eef8;
+      --muted: #98a5b4;
+      --accent: #e6eef8;
+    }
+    [data-theme="light"]{
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #0b1220;
+      --muted: #6b7280;
+      --accent: #0b1220;
+    }
+
+    html,body{
+      height:100%;
+      background:var(--bg);
+      color:var(--text);
+      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+    }
+
+    .brand-serif { font-family: "Playfair Display", serif; }
+
+    /* subtle glass / card */
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,0.04);
+    }
+
+    /* product hover lift */
+    .lift {
+      transform: translateY(0);
+      transition: transform .35s cubic-bezier(.2,.9,.2,1), box-shadow .35s;
+    }
+    .lift:hover {
+      transform: translateY(-10px) scale(1.01);
+      box-shadow: 0 12px 30px rgba(2,6,23,0.45);
+    }
+
+    /* image aspect cube */
+    .aspect-keeper { position:relative; padding-top:66.66%; overflow:hidden; border-radius:12px; }
+    .aspect-keeper img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+
+    /* accessible focus */
+    a:focus, button:focus { outline: 3px solid rgba(99,102,241,0.22); outline-offset:3px; }
+
+    /* small helpers */
+    .subtle {
+      color: var(--muted);
+      font-size: .95rem;
+    }
+
+    /* smooth scroll behavior */
+    html { scroll-behavior: smooth; }
+
+    /* responsive adjustments for hero image cropping */
+    .hero-visual { border-radius: 18px; overflow:hidden; }
+  </style>
+</head>
+<body data-theme="light" class="antialiased">
+
+  <!-- NAV -->
+  <header id="top" class="w-full fixed top-4 left-0 z-40">
+    <nav id="nav" class="max-w-7xl mx-auto px-6">
+      <div class="flex items-center justify-between gap-6 p-3 rounded-2xl card shadow-lg backdrop-blur-md">
+        <div class="flex items-center gap-4">
+          <a href="#top" class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-gray-900 to-gray-700 flex items-center justify-center text-white brand-serif text-xl shadow-sm">KCA</div>
+            <div class="hidden sm:block">
+              <div class="brand-serif text-lg font-semibold leading-4">Kelmu Creatives Art</div>
+              <div class="subtle text-xs">Curated luxury furniture</div>
+            </div>
+          </a>
+        </div>
+
+        <div class="hidden md:flex items-center gap-6">
+          <a href="#featured" class="subtle hover:text-accent transition">Featured</a>
+          <a href="#categories" class="subtle hover:text-accent transition">Categories</a>
+          <a href="#about" class="subtle hover:text-accent transition">About</a>
+          <a href="#contact" class="subtle hover:text-accent transition">Contact</a>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button id="modeToggle" aria-label="Toggle dark mode" class="p-2 rounded-md card hover:scale-105 transition" title="Toggle dark mode">
+            <!-- icon: sun/moon -->
+            <svg id="modeIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1M4.22 4.22l.7.7M18.08 18.08l.7.7M1 12h1m19 0h1M4.22 19.78l.7-.7M18.08 5.92l.7-.7M12 7a5 5 0 100 10 5 5 0 000-10z" />
+            </svg>
+          </button>
+
+          <a href="#contact" class="hidden sm:inline-flex px-4 py-2 bg-black text-white rounded-lg font-medium hover:translate-y-[-1px] transition">Contact</a>
+
+          <!-- mobile menu -->
+          <div class="md:hidden">
+            <button id="mobileBtn" class="p-2 rounded-md card">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- mobile menu panel -->
+      <div id="mobileMenu" class="mt-3 hidden md:hidden">
+        <div class="card p-4 rounded-xl">
+          <a href="#featured" class="block py-2">Featured</a>
+          <a href="#categories" class="block py-2">Categories</a>
+          <a href="#about" class="block py-2">About</a>
+          <a href="#contact" class="block py-2">Contact</a>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main class="pt-32">
+    <!-- HERO -->
+    <section class="max-w-7xl mx-auto px-6 mb-20">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+        <div class="lg:col-span-6">
+          <div class="brand-serif text-5xl lg:text-6xl font-bold leading-tight mb-4">Kelmu Creatives Art.</div>
+          <p class="subtle max-w-xl mb-6">A curated collection of timeless furniture that blends modern minimalism with artisan workmanship. Each piece is selected to create spaces that breathe elegance.</p>
+
+          <div class="flex items-center gap-3 flex-wrap">
+            <a href="#featured" class="px-6 py-3 rounded-lg shadow-lg bg-gradient-to-r from-gray-900 to-gray-700 text-white font-medium hover:scale-[1.02] transition transform">Shop Collection</a>
+            <a href="#about" class="px-5 py-3 rounded-lg card subtle hover:shadow hover:-translate-y-1 transition">Our Story</a>
+          </div>
+
+          <div class="mt-8 text-sm subtle">
+            <span class="inline-flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 opacity-80" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M2 11a1 1 0 011-1h1V8a3 3 0 013-3h4a3 3 0 013 3v2h1a1 1 0 011 1v6a1 1 0 01-1 1H3a1 1 0 01-1-1v-6z" />
+              </svg>
+              Complimentary design consultation for select orders.
+            </span>
+          </div>
+        </div>
+
+        <div class="lg:col-span-6">
+          <div class="hero-visual card shadow-xl p-6">
+            <div class="relative grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="aspect-keeper">
+                <img src="Products/Table.jpg" alt="Elegant living room with sofa">
+              </div>
+              <div class="flex flex-col gap-4">
+                <div class="aspect-keeper">
+                  <img src="Products/Kelmu5.jpg" alt="Minimalist chair and side table">
+                </div>
+                <div class="aspect-keeper">
+                  <img src="Products/Meza.jpg" alt="Dining set, wood table">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURED PRODUCTS -->
+    <section id="featured" class="max-w-7xl mx-auto px-6 mb-20">
+      <div class="flex items-end justify-between mb-8">
+        <div>
+          <h2 class="brand-serif text-3xl font-semibold">Featured Collection</h2>
+          <p class="subtle">Selected pieces for a refined home.</p>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <button id="prev" class="p-2 rounded-lg card hidden sm:inline-flex">‹</button>
+          <button id="next" class="p-2 rounded-lg card hidden sm:inline-flex">›</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Product Card (repeat) -->
+        <article class="card p-5 rounded-2xl lift" tabindex="0" role="article" aria-label="Product: Luma Sofa" data-product='{"title":"Luma Sofa","price":"$3,400","images":["Products/Kelmu6.jpg","Products/Kelmu5.jpg"]}'>
+          <div class="aspect-keeper mb-4 rounded-lg overflow-hidden">
+            <img src="Products/Kelmu5.jpg" alt="Luma Sofa — luxury sofa">
+          </div>
+          <h3 class="font-semibold text-lg">Luma Sofa</h3>
+          <p class="subtle text-sm">Hand-stitched upholstery, kiln-dried oak frame.</p>
+          <div class="mt-4 flex items-center justify-between">
+            <div class="brand-serif text-xl font-medium">Ksh 10,599/=</div>
+            <div class="flex items-center gap-2">
+              <button class="px-4 py-2 rounded-lg card subtle viewBtn" aria-label="View details for Luma Sofa">View</button>
+              <a href="#contact" class="px-4 py-2 rounded-lg bg-black text-white">Buy</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="card p-5 rounded-2xl lift" tabindex="0" role="article" aria-label="Product: Orbis Chair" data-product='{"title":"Orbis Chair","price":"$1,250","images":["https://images.unsplash.com/photo-1616627894038-4f43e8066d3d?q=80&w=1400&auto=format&fit=crop","https://images.unsplash.com/photo-1616627894079-2f942b3ddf20?q=80&w=1400&auto=format&fit=crop"]}'>
+          <div class="aspect-keeper mb-4 rounded-lg overflow-hidden">
+            <img src="Products/Kelmu8.jpg" alt="Orbis Chair — sculptural chair">
+          </div>
+          <h3 class="font-semibold text-lg">Orbis Chair</h3>
+          <p class="subtle text-sm">Sculptural silhouette with a soft lumbar curve.</p>
+          <div class="mt-4 flex items-center justify-between">
+            <div class="brand-serif text-xl font-medium">Ksh 20,335/=</div>
+            <div class="flex items-center gap-2">
+              <button class="px-4 py-2 rounded-lg card viewBtn subtle">View</button>
+              <a href="#contact" class="px-4 py-2 rounded-lg bg-black text-white">Buy</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="card p-5 rounded-2xl lift" tabindex="0" role="article" aria-label="Product: Alta Dining Table" data-product='{"title":"Alta Dining Table","price":"$4,800","images":["https://images.unsplash.com/photo-1582582494708-4b8eb9e1a2f5?q=80&w=1400&auto=format&fit=crop","https://images.unsplash.com/photo-1582582494710-2b7ff5f1a33c?q=80&w=1400&auto=format&fit=crop"]}'>
+          <div class="aspect-keeper mb-4 rounded-lg overflow-hidden">
+            <img src="Products/Dining table.jpg" alt="Alta Dining Table — wood and metal">
+          </div>
+          <h3 class="font-semibold text-lg">Alta Dining Table</h3>
+          <p class="subtle text-sm">Solid walnut top with brass inlays.</p>
+          <div class="mt-4 flex items-center justify-between">
+            <div class="brand-serif text-xl font-medium">Ksh 30,899/=</div>
+            <div class="flex items-center gap-2">
+              <button class="px-4 py-2 rounded-lg card viewBtn subtle">View</button>
+              <a href="#contact" class="px-4 py-2 rounded-lg bg-black text-white">Buy</a>
+            </div>
+          </div>
+        </article>
+        <article class="card p-5 rounded-2xl lift" tabindex="0" role="article" aria-label="Product: Luma Sofa" data-product='{"title":"Luma Sofa","price":"$3,400","images":["https://images.unsplash.com/photo-1549187774-b4e9b0445bcd?q=80&w=1400&auto=format&fit=crop","https://images.unsplash.com/photo-1549187774-6b1c9f7f1e2b?q=80&w=1400&auto=format&fit=crop"]}'>
+          <div class="aspect-keeper mb-4 rounded-lg overflow-hidden">
+            <img src="Products/BD frame 2.jpg" alt="Luma Sofa — luxury sofa">
+          </div>
+          <h3 class="font-semibold text-lg">Chester Bed
+          <p class="subtle text-sm">Hand-stitched upholstery, kiln-dried oak frame.</p>
+          <div class="mt-4 flex items-center justify-between">
+            <div class="brand-serif text-xl font-medium">Ksh 20,599/=</div>
+            <div class="flex items-center gap-2">
+              <button class="px-4 py-2 rounded-lg card subtle viewBtn" aria-label="View details for Luma Sofa">View</button>
+              <a href="#contact" class="px-4 py-2 rounded-lg bg-black text-white">Buy</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="card p-5 rounded-2xl lift" tabindex="0" role="article" aria-label="Product: Orbis Chair" data-product='{"title":"Orbis Chair","price":"$1,250","images":["https://images.unsplash.com/photo-1616627894038-4f43e8066d3d?q=80&w=1400&auto=format&fit=crop","https://images.unsplash.com/photo-1616627894079-2f942b3ddf20?q=80&w=1400&auto=format&fit=crop"]}'>
+          <div class="aspect-keeper mb-4 rounded-lg overflow-hidden">
+            <img src="Products/BD frame 3.jpg" alt="Orbis Chair — sculptural chair">
+          </div>
+          <h3 class="font-semibold text-lg">Orbis Chair</h3>
+          <p class="subtle text-sm">Sculptural silhouette with a soft lumbar curve.</p>
+          <div class="mt-4 flex items-center justify-between">
+            <div class="brand-serif text-xl font-medium">Ksh 20,335/=</div>
+            <div class="flex items-center gap-2">
+              <button class="px-4 py-2 rounded-lg card viewBtn subtle">View</button>
+              <a href="#contact" class="px-4 py-2 rounded-lg bg-black text-white">Buy</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="card p-5 rounded-2xl lift" tabindex="0" role="article" aria-label="Product: Alta Dining Table" data-product='{"title":"Alta Dining Table","price":"$4,800","images":["https://images.unsplash.com/photo-1582582494708-4b8eb9e1a2f5?q=80&w=1400&auto=format&fit=crop","https://images.unsplash.com/photo-1582582494710-2b7ff5f1a33c?q=80&w=1400&auto=format&fit=crop"]}'>
+          <div class="aspect-keeper mb-4 rounded-lg overflow-hidden">
+            <img src="Products/Bd frame1.jpg" alt="Alta Dining Table — wood and metal">
+          </div>
+          <h3 class="font-semibold text-lg">Alta Dining Chair</h3>
+          <p class="subtle text-sm">Solid walnut top with brass inlays.</p>
+          <div class="mt-4 flex items-center justify-between">
+            <div class="brand-serif text-xl font-medium">Ksh 30,899/=</div>
+            <div class="flex items-center gap-2">
+              <button class="px-4 py-2 rounded-lg card viewBtn subtle">View</button>
+              <a href="#contact" class="px-4 py-2 rounded-lg bg-black text-white">Buy</a>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- CATEGORIES -->
+    <section id="categories" class="max-w-7xl mx-auto px-6 mb-20">
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <h2 class="brand-serif text-3xl font-semibold">Categories</h2>
+          <p class="subtle">Explore by mood and function.</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div class="card p-6 rounded-2xl hover:scale-[1.01] transition lift">
+          <h3 class="font-semibold text-lg mb-2">Living</h3>
+          <p class="subtle mb-4">Sofas, lounge chairs, and curated accents.</p>
+          <a href="Products/Chair3.jpg" class="text-sm subtle">Explore →</a>
+        </div>
+        <div class="card p-6 rounded-2xl hover:scale-[1.01] transition lift">
+          <h3 class="font-semibold text-lg mb-2">Dining</h3>
+          <p class="subtle mb-4">Tables, seating, and ambient lighting.</p>
+          <a href="Products/Esssensia2.jpg" class="text-sm subtle">Explore →</a>
+        </div>
+        <div class="card p-6 rounded-2xl hover:scale-[1.01] transition lift">
+          <h3 class="font-semibold text-lg mb-2">Work</h3>
+          <p class="subtle mb-4">Desks, shelves, and ergonomic essentials.</p>
+          <a href="Products/Hays Mag Rewool.jpg" class="text-sm subtle">Explore →</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section id="about" class="max-w-7xl mx-auto px-6 mb-20">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+        <div>
+          <h2 class="brand-serif text-3xl font-semibold mb-3">Our Craft</h2>
+          <p class="subtle mb-4">Founded on the principles of restraint and detail, we design furniture that honours materials and human scale. We work with small ateliers and sustainable suppliers to ensure each piece is built to last.</p>
+
+          <ul class="space-y-3">
+            <li class="flex items-start gap-3">
+              <div class="w-9 h-9 rounded-full bg-black text-white grid place-items-center">✓</div>
+              <div>
+                <div class="font-medium">Sustainably sourced</div>
+                <div class="subtle">Timber and fabrics selected for durability.</div>
+              </div>
+            </li>
+            <li class="flex items-start gap-3">
+              <div class="w-9 h-9 rounded-full bg-black text-white grid place-items-center">✓</div>
+              <div>
+                <div class="font-medium">Bespoke options</div>
+                <div class="subtle">Custom finishes available on request.</div>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <div class="card p-6 rounded-2xl">
+            <h4 class="font-semibold">Visit our studio</h4>
+            <p class="subtle mb-4">By appointment: experience finishes and materials firsthand.</p>
+
+            <div class="grid grid-cols-1 gap-3">
+              <a href="tel:+2547 17 892 776" class="block px-4 py-3 rounded-lg card subtle">Call: +2547 17 892 776</a>
+              <a href="mailto:mosesdevtech@gmail.com" class="block px-4 py-3 rounded-lg card subtle">Email: mosesdevtech@gmail.com</a>
+              <a href="https://wa.me/0717892776" target="_blank" rel="noopener" class="block px-4 py-3 rounded-lg bg-green-600 text-white">WhatsApp</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact" class="max-w-7xl mx-auto px-6 mb-32">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div>
+          <h2 class="brand-serif text-3xl font-semibold">Get in touch</h2>
+          <p class="subtle mb-6">For inquiries, commissions, or wholesale, use any of the channels below. Typical response time: 1–2 business days.</p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <a href="https://wa.me/1234567890" target="_blank" rel="noopener" class="card p-4 rounded-xl flex items-center gap-4">
+              <div class="w-12 h-12 rounded-lg grid place-items-center bg-green-600 text-white">WA</div>
+              <div>
+                <div class="font-medium">WhatsApp</div>
+                <div class="subtle">Chat with our studio</div>
+              </div>
+            </a>
+
+            <a href="tel:+1234567890" class="card p-4 rounded-xl flex items-center gap-4">
+              <div class="w-12 h-12 rounded-lg grid place-items-center bg-black text-white">☎</div>
+              <div>
+                <div class="font-medium">Call</div>
+                <div class="subtle">+254 717 892 776</div>
+              </div>
+            </a>
+
+            <a href="mailto:hello@brand.com" class="card p-4 rounded-xl flex items-center gap-4">
+              <div class="w-12 h-12 rounded-lg grid place-items-center bg-indigo-600 text-white">@</div>
+              <div>
+                <div class="font-medium">Email</div>
+                <div class="subtle">mosesdevtech@gmail.com<div>
+              </div>
+            </a>
+
+            <div class="card p-4 rounded-xl">
+              <div class="font-medium mb-2">Studio Hours</div>
+              <div class="subtle">Mon–Fri • 09:00 am — 7:00 pm</div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <form id="contactForm" class="card p-6 rounded-2xl space-y-4" onsubmit="event.preventDefault(); openContactSent()">
+            <h3 class="font-semibold">Send a message</h3>
+            <label class="block">
+              <span class="subtle">Name</span>
+              <input required class="mt-1 block w-full rounded-md border-0 p-3 bg-transparent ring-1 ring-gray-200 focus:ring-2 focus:ring-indigo-300" placeholder="Your name">
+            </label>
+            <label class="block">
+              <span class="subtle">Email</span>
+              <input type="email" required class="mt-1 block w-full rounded-md border-0 p-3 bg-transparent ring-1 ring-gray-200 focus:ring-2 focus:ring-indigo-300" placeholder="Enter your email">
+            </label>
+            <label class="block">
+              <span class="subtle">Message</span>
+              <textarea required class="mt-1 block w-full rounded-md border-0 p-3 bg-transparent ring-1 ring-gray-200 focus:ring-2 focus:ring-indigo-300" rows="4" placeholder="Tell us about your project..."></textarea>
+            </label>
+            <div class="flex items-center gap-3">
+              <button type="submit" class="px-5 py-3 bg-black text-white rounded-lg">Send</button>
+              <div class="subtle text-sm">Or reach us directly via WhatsApp.</div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="max-w-7xl mx-auto px-6 py-8 subtle">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="brand-serif text-lg font-semibold">Kelmu Creatives Art</div>
+          <div class="subtle text-sm">©<span id="year"></span> Kelmu. All rights reserved.</div>
+        </div>
+
+        <div class="flex items-center gap-4">
+          <a href="#" class="subtle">Privacy</a>
+          <a href="#" class="subtle">Terms</a>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <!-- PRODUCT MODAL -->
+  <div id="productModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 p-6">
+    <div class="max-w-4xl w-full card rounded-2xl overflow-hidden">
+      <div class="flex items-start justify-between p-4">
+        <div>
+          <h3 id="modalTitle" class="brand-serif text-2xl font-semibold">Product title</h3>
+          <div id="modalPrice" class="subtle">Price</div>
+        </div>
+        <div class="flex items-center gap-3">
+          <a id="modalBuy" href="#contact" class="px-4 py-2 rounded-lg bg-black text-white">Buy</a>
+          <button id="modalClose" class="p-2 rounded-md card">✕</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 p-4">
+        <div class="relative">
+          <div id="carousel" class="relative rounded-lg overflow-hidden">
+            <!-- images injected by JS -->
+          </div>
+
+          <div class="flex items-center gap-2 mt-3 justify-center" id="thumbs"></div>
+        </div>
+
+        <div>
+          <h4 class="font-semibold mb-2">Details</h4>
+          <p class="subtle mb-4">Premium materials. Bespoke finishes available. Lead times vary by item.</p>
+
+          <div class="space-y-3">
+            <button class="w-full px-4 py-3 border rounded-lg card text-left">Request quote</button>
+            <a href="https://wa.me/1234567890" target="_blank" rel="noopener" class="w-full inline-block text-center px-4 py-3 rounded-lg bg-green-600 text-white">Message on WhatsApp</a>
+            <a href="tel:+254 717 892 776" class="w-full inline-block text-center px-4 py-3 rounded-lg card">Call studio</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast / confirmation -->
+  <div id="toast" class="fixed bottom-6 right-6 bg-black text-white px-4 py-3 rounded-lg hidden">Message sent — we’ll reply shortly.</div>
+
+  <!-- SCRIPTS -->
+  <script>
+    // small helpers & initial state
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // mobile menu toggling
+    const mobileBtn = document.getElementById('mobileBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    mobileBtn?.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+    });
+
+    // dark mode toggle
+    const body = document.body;
+    const modeToggle = document.getElementById('modeToggle');
+    const modeIcon = document.getElementById('modeIcon');
+
+    function applyTheme(theme){
+      body.setAttribute('data-theme', theme);
+      if(theme === 'dark'){
+        modeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>';
+      } else {
+        modeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1M4.22 4.22l.7.7M18.08 18.08l.7.7M1 12h1m19 0h1M4.22 19.78l.7-.7M18.08 5.92l.7-.7M12 7a5 5 0 100 10 5 5 0 000-10z" />';
+      }
+      localStorage.theme = theme;
+    }
+    applyTheme(localStorage.theme || 'light');
+    modeToggle.addEventListener('click', () => {
+      applyTheme(body.getAttribute('data-theme') === 'light' ? 'dark' : 'light');
+    });
+
+    // product modal logic
+    const viewBtns = document.querySelectorAll('.viewBtn, article[data-product]');
+    const modal = document.getElementById('productModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalPrice = document.getElementById('modalPrice');
+    const carousel = document.getElementById('carousel');
+    const thumbs = document.getElementById('thumbs');
+    const modalClose = document.getElementById('modalClose');
+
+    function openProduct(data){
+      modalTitle.textContent = data.title;
+      modalPrice.textContent = data.price;
+      carousel.innerHTML = '';
+      thumbs.innerHTML = '';
+      (data.images || []).forEach((src, i) => {
+        const img = document.createElement('img');
+        img.src = src;
+        img.alt = data.title + ' image ' + (i+1);
+        img.style.width = '100%';
+        img.style.height = '420px';
+        img.style.objectFit = 'cover';
+        img.style.display = i === 0 ? 'block' : 'none';
+        img.dataset.index = i;
+        carousel.appendChild(img);
+
+        const tbtn = document.createElement('button');
+        tbtn.className = 'p-1 rounded overflow-hidden';
+        tbtn.innerHTML = '<img src="'+src+'" alt="thumb" style="width:64px;height:48px;object-fit:cover;border-radius:8px; opacity:0.9"/>';
+        tbtn.addEventListener('click', () => {
+          // show clicked
+          carousel.querySelectorAll('img').forEach(im => im.style.display = 'none');
+          carousel.querySelector('img[data-index="'+i+'"]').style.display = 'block';
+        });
+        thumbs.appendChild(tbtn);
+      });
+
+      modal.classList.remove('hidden');
+      modal.style.display = 'flex';
+
+      // simple fade in with GSAP if available
+      if(window.gsap) gsap.fromTo(modal.querySelector('.card'), {y:20, autoAlpha:0}, {y:0, autoAlpha:1, duration:0.45});
+    }
+
+    document.querySelectorAll('article[data-product]').forEach(card => {
+      card.querySelectorAll('.viewBtn').forEach(b => b.addEventListener('click', (e)=>{
+        const data = JSON.parse(card.getAttribute('data-product'));
+        openProduct(data);
+      }));
+      // allow opening by clicking card
+      card.addEventListener('keydown', (e)=>{
+        if(e.key === 'Enter' || e.key === ' ') {
+          const data = JSON.parse(card.getAttribute('data-product'));
+          openProduct(data);
+        }
+      });
+    });
+
+    modalClose?.addEventListener('click', ()=> {
+      modal.classList.add('hidden');
+      modal.style.display = 'none';
+    });
+    modal.addEventListener('click', (e)=>{
+      if(e.target === modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+      }
+    });
+
+    // toast helper
+    function openContactSent(){
+      const t = document.getElementById('toast');
+      t.classList.remove('hidden');
+      setTimeout(()=> t.classList.add('hidden'), 3500);
+      // optionally close modal
+    }
+
+    // small hero / entrance animations
+    window.addEventListener('load', () => {
+      if(window.gsap){
+        gsap.from('.brand-serif', {y: 10, autoAlpha:0, duration:0.7, stagger:0.06});
+        gsap.from('.card.lift', {y: 8, autoAlpha:0, duration:0.8, stagger:0.06, ease:'power2.out'});
+      }
+    });
+
+    // sticky nav visual change on scroll
+    const nav = document.getElementById('nav');
+    const sentinel = 40;
+    window.addEventListener('scroll', () => {
+      if(window.scrollY > sentinel){
+        nav.querySelector('.card').classList.add('shadow-2xl');
+        nav.querySelector('.card').style.backdropFilter = 'blur(8px)';
+      } else {
+        nav.querySelector('.card').classList.remove('shadow-2xl');
+        nav.querySelector('.card').style.backdropFilter = 'blur(4px)';
+      }
+    });
+
+    // product prev/next (basic client-side scrolling for featured)
+    const next = document.getElementById('next'), prev = document.getElementById('prev');
+    const featured = document.querySelector('#featured > div + div') || document.querySelector('#featured .grid');
+    if(next && prev && featured){
+      next.addEventListener('click', ()=> featured.scrollBy({left: 350, behavior:'smooth'}));
+      prev.addEventListener('click', ()=> featured.scrollBy({left: -350, behavior:'smooth'}));
+    }
+
+    // accessible: keyboard close modal with ESC
+    document.addEventListener('keydown', (e) => {
+      if(e.key === 'Escape'){
+        if(!modal.classList.contains('hidden')){
+          modal.classList.add('hidden');
+          modal.style.display = 'none';
+        }
+      }
+    });
+
+    // progressive enhancement: if user prefers dark
+    if(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches && !localStorage.theme){
+      applyTheme('dark');
+    }
+  </script>
+
+</body>
+</html>
